@@ -5,6 +5,8 @@ from PIL import Image
 
 import subprocess
 import datetime
+import glob
+import os
 
 def get_date():
 	year = int(raw_input("YEAR: ").zfill(4))
@@ -41,7 +43,19 @@ if __name__ == '__main__':
 		                       "[SDO,AIA,AIA,193,1,100],"\
 		                       "[SOHO,LASCO,C2,white-light,1,100]",
 		                       directory="./downloaded", 
-		                       x0=0, y0=0, width=2000, height=2000, watermark=False)  
+		                       x0=0, y0=0, width=2000, height=2000, watermark=False ) 
+	
+	i = 0
+	for f in sorted(glob.glob("downloaded/*.png")):
+		os.rename(f, "downloaded/" + str(i) + ".png")
+		i = i + 1
+
+	outname = "LASCO_" + str(year) + str(month) + str(day) + ".mp4"
+	subprocess.call('ffmpeg -r 24 -i downloaded/%01d.png -vcodec libx264 -filter "minterpolate=mi_mode=blend" -b:v 4M -pix_fmt yuv420p  -y ' + outname, shell = True)
+
+
+	backup = "archived/" + str(year) + str(month) + str(day)
+	subprocess.call("mkdir -p " + backup + " && mv downloaded/*.png " + backup, shell = True) 
 
 
 
